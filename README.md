@@ -18,12 +18,9 @@ devtools::install_github("jschuessler/pib")
 
 The workflow consists of three steps:
 
-1.  `estimate_sensitivity` takes as input a dataframe and the name of the outcome,
-treatment, instrument, and post-instrument variable. The function computes bootstrap
-replicates for the required model components for the sensivitiy analysis.
-2. `post_instrument_bounds` computes bounds given the output from `estimate_sensitivity` 
-and values for the sensitivity parameters `gamma` and (optionally) `sigma`
-3. `plot_pib_bounds` is used to plot the output from `post_instrument_bounds`
+1.  `estimate_sensitivity` takes as input a dataframe and the name of the outcome, treatment, instrument, and post-instrument variable. The function computes bootstrap replicates for the required model components for the sensitivity analysis.
+2.  `post_instrument_bounds` computes bounds given the output from `estimate_sensitivity` and values for the sensitivity parameters `gamma` and (optionally) `sigma`
+3.  `plot_pib_bounds` is used to plot the output from `post_instrument_bounds`
 
 ``` r
 out <- estimate_sensitivity(df, outcome = y, treat = d, inst = z, post.inst = m)
