@@ -15,7 +15,7 @@ plot_pib_bounds(
   xlab = expression(paste("E[", gamma[i], "]")),
   ylim = NULL,
   xlim = NULL,
-  lty = "dashed",
+  horizontal.lty = "dashed",
   ...
 )
 }
