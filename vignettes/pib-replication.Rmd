@@ -10,8 +10,9 @@ editor_options:
     wrap: 72
 ---
 
-This document how to replicate the analyses reported in Schuessler, J.,
-Glynn, A. N., & Rueda, M.R. (2023). "Post-Instrument Bias".
+This document shows how to replicate the analyses reported in
+Schuessler, J., Glynn, A. N., & Rueda, M.R. (2023). "Post-Instrument
+Bias".
 
 ```{r setup, eval=FALSE}
 library(pib)
