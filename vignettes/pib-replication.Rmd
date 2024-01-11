@@ -1,0 +1,128 @@
+---
+title: "pib - Replication script"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{pib - Replication script}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+This document how to replicate the analyses reported in Schuessler, J.,
+Glynn, A. N., & Rueda, M.R. (2023). "Post-Instrument Bias".
+
+```{r setup, eval=FALSE}
+library(pib)
+library(estimatr)
+```
+
+### Carnegie/Marinov 2017
+
+```{r, eval=FALSE}
+data("carnegie_marinov")
+y <- "new_empinxavg" 
+m <- "pwt_openk" 
+d <- "EV" 
+z <- "l2CPcol2" 
+fe <- c("ccode", "year")
+```
+
+##### Diagnostic test
+
+```{r, eval=FALSE}
+confint(lm_robust(EV ~ pwt_openk + l2CPcol2, 
+                  fixed_effects = ~ ccode + year, 
+                  clusters = ccode, data = carnegie_marinov), 
+        level = 0.9)["pwt_openk",]
+```
+
+##### Sensitivity analysis
+
+```{r, eval=FALSE}
+out <- estimate_sensitivity(carnegie_marinov, R = 1501, outcome = y,
+treat = d, inst = z, post.inst = m, fe = fe, seed = 823, parallel =
+"snow", ncpus = 4)
+
+gamma <- c(-0.02, 0.02) 
+sigma <- c(0, 0.002)
+
+bounds <- post_instrument_bounds(gamma = gamma, sigma = sigma, n.sigma
+= 2, estimates = out)
+
+plot_pib_bounds(bounds, digits = 3)
+```
+
+### Spenkuch/Tillmann 2017
+
+```{r, eval=FALSE}
+data("spenkuch_tillmann")
+
+y <- "r_NSDAP_NOV1932_p"
+d <- "r_1925C_kath"
+z <- "r_kath1624"
+m <- "r_1933C_arb_arbeitslos"
+x <- c("r_1925C_juden", "r_1925C_others", "r_1933C_frauen", "r_M1933C_frauen",
+       "r_stadtkreis", "r_1925C_logtotpop", "r_M1925C_logtotpop", "r_1933C_arbfrau",
+       "r_1933C_ang_arbeitslos", "r_M1933C_ang_arbeitslos", "r_1933C_hausang_arbeitslos",
+       "r_1933C_ind", "r_1933C_hand", "r_1933C_oeffprivd", "r_1933C_haus", "r_1933C_angest",
+       "r_1933C_beamt", "r_1933C_arb", "r_1933C_hausang", "r_1933C_selbst",
+       "r_latitude", "r_longitude", "r_distance_berlin", "r_distance_nearestcity", "r_distance_border",
+       "r_distance_seaport", "r_distance_river", "r_distance_resources",
+       "r_reichsmatrikel", "r_Mreichsmatrikel", "r_ecclesiastical", "r_Mecclesiastical",
+       "r_distance_wittenberg",
+       "r_press")
+fe <- "WKNR"
+```
+
+##### Diagnostic test
+
+```{r, eval=FALSE}
+diagnostic <- lm(r_1925C_kath ~ r_kath1624 + r_gem1624 +
+                   r_1925C_juden + r_M1925C_juden + r_1925C_others + r_M1925C_others +
+                   r_1933C_frauen + r_M1933C_frauen + r_stadtkreis +
+                   r_1925C_logtotpop + r_M1925C_logtotpop +
+                   r_1933C_arbfrau + r_M1933C_arbfrau +
+                   r_1933C_ang_arbeitslos + r_M1933C_ang_arbeitslos +
+                   r_1933C_arb_arbeitslos + r_M1933C_arb_arbeitslos +
+                   r_1933C_hausang_arbeitslos + r_M1933C_hausang_arbeitslos +
+                   r_1933C_ind + r_1933C_hand + r_M1933C_ind + r_M1933C_hand +
+                   r_1933C_oeffprivd + r_M1933C_oeffprivd +
+                   r_1933C_haus + r_M1933C_haus +
+                   r_1933C_angest + r_1933C_beamt + r_M1933C_angest + r_M1933C_beamt +
+                   r_1933C_arb + r_M1933C_arb +
+                   r_1933C_hausang + r_1933C_selbst + r_M1933C_hausang + r_M1933C_selbst +
+                   factor(WKNR) +
+                   r_latitude+r_longitude + r_distance_berlin+
+                   r_distance_nearestcity + r_distance_border+
+                   r_distance_seaport + r_distance_river + r_distance_resources +
+                   r_reichsmatrikel + r_Mreichsmatrikel + r_ecclesiastical + r_Mecclesiastical +
+                   r_distance_wittenberg +
+                   r_press,
+
+                 weights = dfST$r_wahlberechtigte_NOV1932[
+                   dfST$r_MNSDAP_NOV1932_p==0 & dfST$r_M1925C_kath==0 &
+                     dfST$KREIS==1],
+
+                 data=spenkuch_tillmann[dfST$r_MNSDAP_NOV1932_p==0 & dfST$r_M1925C_kath==0 &
+                             dfST$KREIS==1,])
+
+confint(diagnostic, level = 0.9)["r_1933C_arb_arbeitslos",]
+```
+
+##### Sensitivity analysis
+
+```{r, eval=FALSE}
+outST <- estimate_sensitivity(spenkuch_tillmann, R = 1501, outcome = y,
+treat = d, inst = z, post.inst = m, x = x, fe = fe, weights =
+spenkuch_tillmann$r_wahlberechtigte_NOV1932, seed = 823, parallel =
+"snow", ncpus = 4)
+
+gamma <- c(-0.5, 0.5) sigma <- c(0, 1)
+
+boundsST <- post_instrument_bounds(gamma = gamma, sigma = sigma,
+estimates = outST, n.sigma = 3)
+
+plot_pib_bounds(boundsST, annotate.sigma = "all")
+```
