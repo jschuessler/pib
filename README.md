@@ -33,3 +33,5 @@ bounds <- post_instrument_bounds(gamma = gamma, sigma = sigma,
 
 plot_pib_bounds(bounds)
 ```
+
+For an extended example, see [here](https://github.com/jschuessler/pib/blob/main/vignettes/pib-replication.Rmd).
