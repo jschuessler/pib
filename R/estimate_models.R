@@ -39,7 +39,7 @@ estimate_models <- function(df, i, treat, inst,
 
   variance.effect <- coef(var.reg)[inst]
   variance.term <- sum(
-    coef(var.reg)[c("(Intercept)", inst)]*c(2, 1)
+    coef(var.reg)[c("(Intercept)", inst)]*c(2, rep(1, length(inst)))
   )
   # note that in the formula for bounds, it's
   # var(M|Z = 1) *plus* var(M|Z = 0), not minus
