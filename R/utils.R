@@ -74,10 +74,10 @@ compute_bounds <- function(sigma = sigma, gamma = gamma,
 
   # if just vector of estimates:
   if(is.null(dim(estimates))){
-    out <- matrix(unlist(c(estimates[1] - estimates[2]*gamma.sigma["gamma"] -
-                             (sqrt(estimates[4])*gamma.sigma["sigma"])/estimates[5],
-                           estimates[1] - estimates[2]*gamma.sigma["gamma"] +
-                             (sqrt(estimates[4])*gamma.sigma["sigma"])/estimates[5])),
+    out <- matrix(unlist(c(estimates["naive.estimate"] - estimates["estimate.m"]*gamma.sigma["gamma"] -
+                             (sqrt(estimates["variance.term"])*gamma.sigma["sigma"])/estimates[5],
+                           estimates["naive.estimate"] - estimates["estimate.m"]*gamma.sigma["gamma"] +
+                             (sqrt(estimates["variance.term"])*gamma.sigma["sigma"])/estimates[5])),
                   byrow = F, nrow = 2*nrow(gamma.sigma)
     )
   } else {
@@ -88,10 +88,10 @@ compute_bounds <- function(sigma = sigma, gamma = gamma,
     out <- matrix(
       unlist(
         apply(estimates, 1, function(x){
-          c(x[1] - x[2]*gamma.sigma["gamma"] -
-              (sqrt(x[4])*gamma.sigma["sigma"])/x[5],
-            x[1] - x[2]*gamma.sigma["gamma"] +
-              (sqrt(x[4])*gamma.sigma["sigma"])/x[5])
+          c(x["naive.estimate"] - x["estimate.m"]*gamma.sigma["gamma"] -
+              (sqrt(x["variance.term"])*gamma.sigma["sigma"])/x[5],
+            x["naive.estimate"] - x["estimate.m"]*gamma.sigma["gamma"] +
+              (sqrt(x["variance.term"])*gamma.sigma["sigma"])/x[5])
         })
       ), byrow = F, nrow = 2*nrow(gamma.sigma)
     )
