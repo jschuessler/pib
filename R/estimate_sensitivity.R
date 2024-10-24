@@ -81,7 +81,7 @@ estimate_sensitivity <- function(df, R = 1501,
           paste(c(inst, x.reg, fe.reg), collapse = " + "), sep = " | "))
 
   formula.first.stage <- as.formula(
-    paste(paste(d, paste(c(inst, x.reg, fe.reg), collapse = " + "), sep = " ~ ")))
+    paste(paste(treat, paste(c(inst, x.reg, fe.reg), collapse = " + "), sep = " ~ ")))
 
   formula.residuals <- as.formula(
     paste(paste(post.inst, paste(c(inst, x.reg, fe.reg), collapse = " + "), sep = " ~ ")))
