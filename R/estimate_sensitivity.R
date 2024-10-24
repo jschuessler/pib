@@ -107,6 +107,11 @@ estimate_sensitivity <- function(df, R = 1501,
                      parallel = parallel,
                      ncpus = ncpus,
                      cl = cl)
+  
+  names(bootstrap0$t) <- c("naive.estimate", "estimate.m",
+                            rep("variance.effect", length(inst)),
+                            "variance.term",
+                            rep("first.stage", length(inst)))
 
   if(parallel == "no") close(pb)
 

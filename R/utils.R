@@ -56,7 +56,6 @@ estimate_models <- function(df, i, treat, inst,
     Sys.sleep(0.001)
   }
   
-  
   return(
     c(
       coef(two.sls.y)[treat],
