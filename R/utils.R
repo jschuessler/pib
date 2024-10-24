@@ -44,7 +44,7 @@ estimate_models <- function(df, i, treat, inst,
   # note that in the formula for bounds, it's
   # var(M|Z = 1) *plus* var(M|Z = 0), not minus
   
-  if(variance.term < 0){variance.term <- runif(1, min = 0, max = 0.05)}
+  if(variance.term < 0){variance.term <- 0}
   # since we do not take sqrt of negative numbers
   
   names(variance.term) <- "variance.term"
