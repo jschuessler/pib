@@ -109,9 +109,9 @@ estimate_sensitivity <- function(df, R = 1501,
                      cl = cl)
   
   colnames(bootstrap0$t) <- c("naive.estimate", "estimate.m",
-                            rep("variance.effect", length(inst)),
+                            paste0("variance.effect.", 1:length(inst)),
                             "variance.term",
-                            rep("first.stage", length(inst)))
+                            paste0("first.stage.", 1:length(inst)))
 
   if(parallel == "no") close(pb)
 
