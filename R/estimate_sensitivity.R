@@ -108,7 +108,7 @@ estimate_sensitivity <- function(df, R = 1501,
                      ncpus = ncpus,
                      cl = cl)
   
-  names(bootstrap0$t) <- c("naive.estimate", "estimate.m",
+  colnames(bootstrap0$t) <- c("naive.estimate", "estimate.m",
                             rep("variance.effect", length(inst)),
                             "variance.term",
                             rep("first.stage", length(inst)))
