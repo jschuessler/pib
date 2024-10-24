@@ -80,14 +80,14 @@ post_instrument_bounds <- function(gamma, sigma = 0,
   # are outliers for at least one of the 2SLS regressions
 
   # create indicator for replication being outlier:
-  estimates$t <- cbind(estimates$t, 0)
+  estimates$t <- cbind(estimates$t, outlier = 0)
 
   if(remove.outliers){
     # flag outliers:
-    estimates$t[,6][which(estimates$t[,1] %in% boxplot.stats(
-      estimates$t[,1], coef = 1.5, do.conf = F)$out)] <- 1
-    estimates$t[,6][which(estimates$t[,2] %in% boxplot.stats(
-      estimates$t[,2], coef = 1.5, do.conf = F)$out)] <- 1
+    estimates$t[,"outlier"][which(estimates$t[,"naive.estimate"] %in% boxplot.stats(
+      estimates$t[,"naive.estimate"], coef = 1.5, do.conf = F)$out)] <- 1
+    estimates$t[,"outlier"][which(estimates$t[,"estimate.m"] %in% boxplot.stats(
+      estimates$t[,"estimate.m"], coef = 1.5, do.conf = F)$out)] <- 1
   }
 
   # if sigma is just scalar 0, can delete lower half
@@ -100,7 +100,7 @@ post_instrument_bounds <- function(gamma, sigma = 0,
   # Confidence intervals
   # this is 2*n.combinations x R (minus outliers):
   out <- compute_bounds(gamma = gamma, sigma = sigma,
-                        estimates = estimates$t[estimates$t[,6] == 0,])
+                        estimates = estimates$t[estimates$t[,"outlier"] == 0,])
 
   # If sigma is scalar 0, can delete lower half of CIs:
   if(sum(sigma) == 0) out <- out[1:n.combinations,]
