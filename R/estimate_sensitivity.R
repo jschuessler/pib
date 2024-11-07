@@ -82,6 +82,22 @@ estimate_sensitivity <- function(df, R = 1501,
 
   formula.first.stage <- as.formula(
     paste(paste(treat, paste(c(inst, x.reg, fe.reg), collapse = " + "), sep = " ~ ")))
+  
+  # store IVs using new names
+  # create IV formula for each
+    if(length(inst) > 1){
+    formulae.two.sls.scaling <- list()
+    
+    for(iv in inst){
+      df[,paste0(iv, "_aux")] <- df[,iv]
+      
+      formulae.two.sls.scaling[[which(inst== iv)]] <- 
+        as.formula(
+        paste(paste(paste0(iv, "_aux"), paste(c(treat, x.reg, fe.reg), collapse = " + "), sep = " ~ "),
+              paste(c(inst, x.reg, fe.reg), collapse = " + "), sep = " | "))
+    }
+  }
+
 
   formula.residuals <- as.formula(
     paste(paste(post.inst, paste(c(inst, x.reg, fe.reg), collapse = " + "), sep = " ~ ")))
@@ -91,6 +107,7 @@ estimate_sensitivity <- function(df, R = 1501,
 
 
   set.seed(seed)
+  if(length(inst) > 1){
   bootstrap0 <- boot(data = df,
                      statistic = estimate_models,
                      R = R,
@@ -101,6 +118,7 @@ estimate_sensitivity <- function(df, R = 1501,
                      formula.two.sls.y = formula.two.sls.y,
                      formula.two.sls.m = formula.two.sls.m,
                      formula.first.stage = formula.first.stage,
+                     formula.two.sls.scaling = formulae.two.sls.scaling,
                      formula.residuals = formula.residuals,
                      formula.var = formula.var,
                      parallel.boot = parallel,
@@ -110,9 +128,33 @@ estimate_sensitivity <- function(df, R = 1501,
   
   colnames(bootstrap0$t) <- c("naive.estimate", "estimate.m",
                             paste0("variance.effect.", 1:length(inst)),
-                            "variance.term",
-                            paste0("first.stage.", 1:length(inst)))
-
+                            paste0("variance.term.", 1:length(inst)),
+                            paste0("first.stage.", 1:length(inst)),
+                            paste0("scaling.factor.", 1:length(inst)))
+  } else{
+    bootstrap0 <- boot(data = df,
+                       statistic = estimate_models,
+                       R = R,
+                       treat = treat,
+                       inst = inst,
+                       x = x,
+                       weights = weights,
+                       formula.two.sls.y = formula.two.sls.y,
+                       formula.two.sls.m = formula.two.sls.m,
+                       formula.first.stage = formula.first.stage,
+                       formula.two.sls.scaling = NULL,
+                       formula.residuals = formula.residuals,
+                       formula.var = formula.var,
+                       parallel.boot = parallel,
+                       parallel = parallel,
+                       ncpus = ncpus,
+                       cl = cl)
+    
+    colnames(bootstrap0$t) <- c("naive.estimate", "estimate.m",
+                                paste0("variance.effect.", 1:length(inst)),
+                                paste0("variance.term.", 1:length(inst)),
+                                paste0("first.stage.", 1:length(inst)))
+  }
   if(parallel == "no") close(pb)
 
   return(bootstrap0)

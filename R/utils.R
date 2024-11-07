@@ -4,6 +4,7 @@ estimate_models <- function(df, i, treat, inst,
                             formula.two.sls.y,
                             formula.two.sls.m,
                             formula.first.stage,
+                            formula.two.sls.scaling = NULL,
                             formula.residuals,
                             formula.var,
                             parallel.boot = "no"){
@@ -20,6 +21,15 @@ estimate_models <- function(df, i, treat, inst,
   first.stage <- lm(formula.first.stage,
                     data = df,
                     weights = weights)
+  
+  if(!is.null(formula.two.sls.scaling) & length(formula.two.sls.scaling) > 1){
+    scaling.factors <- rep(NA, length(formula.two.sls.scaling))
+    for(iv in 1:length(formula.two.sls.scaling)){
+      scaling.factors[iv] <- 
+        coef(AER::ivreg(formula.two.sls.scaling[[iv]],
+                        data = df, weights = weights))[treat]
+    }
+  }
   
   # standardize controls:
   if(!is.null(x)){
@@ -38,16 +48,16 @@ estimate_models <- function(df, i, treat, inst,
   
   
   variance.effect <- coef(var.reg)[inst]
-  variance.term <- sum(
-    coef(var.reg)[c("(Intercept)", inst)]%*%c(2, rep(1, length(inst)))
-  )
+
+  # note that by construction of reg formula, first element is always intercept
+  # and next items are instruments:
+  variance.terms <- 2 * coef(var.reg)[1] + coef(var.reg)[2:(length(inst)+1)]
+  
   # note that in the formula for bounds, it's
   # var(M|Z = 1) *plus* var(M|Z = 0), not minus
   
-  if(variance.term < 0){variance.term <- 0}
+  variance.terms[variance.terms < 0] <- 0
   # since we do not take sqrt of negative numbers
-  
-  names(variance.term) <- "variance.term"
   
   # update progress bar:
   if(parallel.boot == "no"){
@@ -55,13 +65,26 @@ estimate_models <- function(df, i, treat, inst,
     rep_count <<- rep_count + 1
     Sys.sleep(0.001)
   }
+   
+  if(!is.null(formula.two.sls.scaling) & length(formula.two.sls.scaling) > 1){
+    return(
+      c(
+        coef(two.sls.y)[treat],
+        coef(two.sls.m)[treat],
+        variance.effect,
+        variance.terms,
+        coef(first.stage)[inst],
+        scaling.factors
+      )
+    )
+  }
   
   return(
     c(
       coef(two.sls.y)[treat],
       coef(two.sls.m)[treat],
       variance.effect,
-      variance.term,
+      variance.terms,
       coef(first.stage)[inst]
     )
   )
