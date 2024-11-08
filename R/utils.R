@@ -97,27 +97,72 @@ compute_bounds <- function(sigma = sigma, gamma = gamma,
 
   # if just vector of estimates:
   if(is.null(dim(estimates))){
-    out <- matrix(unlist(c(estimates["naive.estimate"] - estimates["estimate.m"]*gamma.sigma["gamma"] -
-                             (sqrt(estimates["variance.term"])*gamma.sigma["sigma"])/estimates[5],
-                           estimates["naive.estimate"] - estimates["estimate.m"]*gamma.sigma["gamma"] +
-                             (sqrt(estimates["variance.term"])*gamma.sigma["sigma"])/estimates[5])),
-                  byrow = F, nrow = 2*nrow(gamma.sigma)
-    )
-  } else {
+    
+    # if multiple IVs were used:
+    if(any(grepl("scaling", names(estimates)))){
+      out <- matrix(unlist(c(
+        estimates["naive.estimate"] - 
+          estimates["estimate.m"]*gamma.sigma["gamma"] -
+          sum(sqrt(estimates[grepl("variance.term", names(estimates))]) /
+                estimates[grepl("scaling", names(estimates))])*
+          gamma.sigma["sigma"] ,
+        estimates["naive.estimate"] - 
+          estimates["estimate.m"]*gamma.sigma["gamma"] +
+          sum(sqrt(estimates[grepl("variance.term", names(estimates))]) /
+                estimates[grepl("scaling", names(estimates))])*
+          gamma.sigma["sigma"])),
+        byrow = F, nrow = 2*nrow(gamma.sigma)
+      )} else{ # if just one IV, divide by first stage instead of scaling factor
+        out <- matrix(unlist(c(
+          estimates["naive.estimate"] - 
+            estimates["estimate.m"]*gamma.sigma["gamma"] -
+            (sqrt(estimates["variance.term.1"])*gamma.sigma["sigma"])/
+            estimates["first.stage.1"],
+          estimates["naive.estimate"] - 
+            estimates["estimate.m"]*gamma.sigma["gamma"] +
+            (sqrt(estimates["variance.term.1"])*gamma.sigma["sigma"])/
+            estimates["first.stage.1"])), 
+          byrow = F, nrow = 2*nrow(gamma.sigma)
+        )
+      }
+    } else {
     # creates (2*length(gamma)*length(sigma), nrep) matrix
     # (two bounds for each combination of gamma and sigma,
     # for each bootstrap replication)
     # ordered as param1.bound1, param2.bound1, ..., param1.bound2...:
-    out <- matrix(
-      unlist(
-        apply(estimates, 1, function(x){
-          c(x["naive.estimate"] - x["estimate.m"]*gamma.sigma["gamma"] -
-              (sqrt(x["variance.term"])*gamma.sigma["sigma"])/x[5],
-            x["naive.estimate"] - x["estimate.m"]*gamma.sigma["gamma"] +
-              (sqrt(x["variance.term"])*gamma.sigma["sigma"])/x[5])
-        })
-      ), byrow = F, nrow = 2*nrow(gamma.sigma)
-    )
+    
+    # if multiple IVs:
+    if(any(grepl("scaling", names(estimates)))){
+      out <- matrix(
+        unlist(
+          apply(estimates, 1, function(x){
+            c(x["naive.estimate"] - 
+                x["estimate.m"]*gamma.sigma["gamma"] -
+                sum(sqrt(x[grepl("variance.term", colnames(estimates))]) /
+                      x[grepl("scaling", colnames(estimates))])*
+                gamma.sigma["sigma"] ,
+              x["naive.estimate"] - 
+                x["estimate.m"]*gamma.sigma["gamma"] +
+                sum(sqrt(x[grepl("variance.term", colnames(estimates))]) /
+                      x[grepl("scaling", colnames(estimates))])*
+                gamma.sigma["sigma"])
+          })
+        ), byrow = F, nrow = 2*nrow(gamma.sigma)
+      )
+    } else{
+      out <- matrix(
+        unlist(
+          apply(estimates, 1, function(x){
+            c(x["naive.estimate"] - x["estimate.m"]*gamma.sigma["gamma"] -
+              (sqrt(x["variance.term.1"])*gamma.sigma["sigma"])/
+                x["first.stage.1"],
+              x["naive.estimate"] - x["estimate.m"]*gamma.sigma["gamma"] +
+              (sqrt(x["variance.term.1"])*gamma.sigma["sigma"])/
+                x["first.stage.1"])
+          })
+        ), byrow = F, nrow = 2*nrow(gamma.sigma)
+      )
+    }
   }
   return(out)
 }
