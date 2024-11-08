@@ -132,7 +132,7 @@ estimate_sensitivity <- function(df, R = 1501,
                             paste0("first.stage.", 1:length(inst)),
                             paste0("scaling.factor.", 1:length(inst)))
   
-  colnames(bootstrap0$t0) <- c("naive.estimate", "estimate.m",
+  names(bootstrap0$t0) <- c("naive.estimate", "estimate.m",
                               paste0("variance.effect.", 1:length(inst)),
                               paste0("variance.term.", 1:length(inst)),
                               paste0("first.stage.", 1:length(inst)),
@@ -161,7 +161,7 @@ estimate_sensitivity <- function(df, R = 1501,
                                 paste0("variance.term.", 1:length(inst)),
                                 paste0("first.stage.", 1:length(inst)))
     
-    colnames(bootstrap0$t0) <- c("naive.estimate", "estimate.m",
+    names(bootstrap0$t0) <- c("naive.estimate", "estimate.m",
                                 paste0("variance.effect.", 1:length(inst)),
                                 paste0("variance.term.", 1:length(inst)),
                                 paste0("first.stage.", 1:length(inst)))
