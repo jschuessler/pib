@@ -7,14 +7,15 @@
 #' @param a,b Integers. Lower and upper bound of unit-level causal effects.
 #' @details
 #' Assuming that unit-level causal effects vary between `a` and `b`, this function
-#' computes implied standard deviations of the distribution of causal effects,
+#' computes the implied mean effect and the implied standard deviation of the distribution of causal effects,
 #' assuming a Beta distribution with parameters `alpha` and `beta`.
 #'
+#' The mean effect corresponds to the first sensitivity parameters. 
 #' The computed standard deviation can be used to inform the magnitude of the
-#' sensitivity parameter `sigma` in [post_instrument_bounds()].
+#' second sensitivity parameter `sigma` in [post_instrument_bounds()].
 #'
 
-#' @return An integer.
+#' @return A named vector with mean and standard deviation of the distribution.
 #' @references Schuessler, J., Glynn, A. N., & Rueda, M.R. (2023). Post-Instrument Bias.
 
 #' @examples
@@ -36,9 +37,13 @@
 #' @export
 
 beta_sd <- function(alpha, beta, a, b){
-sqrt(
-  (alpha*beta*(b - a)^2)/(
-    (alpha + beta)^2*(alpha + beta + 1)
-  )
-)
+  return(c(
+    "mean" = (alpha*b + beta*a)/(alpha + beta),
+    "standard deviation" = sqrt(
+      (alpha*beta*(b - a)^2)/(
+        (alpha + beta)^2*(alpha + beta + 1)
+        )
+      )
+    )
+    )
 }
