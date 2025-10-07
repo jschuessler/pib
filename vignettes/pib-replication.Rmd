@@ -98,7 +98,7 @@ tidy(iv_robust(formula = iv_m_outcome_form, data = hong_data,
 ```
 
 
-##### Sensitivity analysis
+### Sensitivity analysis
 
 ```{r, eval=FALSE}
 out <- estimate_sensitivity(hong_data, outcome = y, 
