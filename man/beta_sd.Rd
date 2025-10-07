@@ -14,18 +14,19 @@ a high-variance distribution where very low or very high values or most likely.}
 \item{a, b}{Integers. Lower and upper bound of unit-level causal effects.}
 }
 \value{
-An integer.
+A named vector with mean and standard deviation of the distribution.
 }
 \description{
 Compute standard deviation of Beta distribution.
 }
 \details{
 Assuming that unit-level causal effects vary between \code{a} and \code{b}, this function
-computes implied standard deviations of the distribution of causal effects,
+computes the implied mean effect and the implied standard deviation of the distribution of causal effects,
 assuming a Beta distribution with parameters \code{alpha} and \code{beta}.
 
+The mean effect corresponds to the first sensitivity parameters.
 The computed standard deviation can be used to inform the magnitude of the
-sensitivity parameter \code{sigma} in \code{\link[=post_instrument_bounds]{post_instrument_bounds()}}.
+second sensitivity parameter \code{sigma} in \code{\link[=post_instrument_bounds]{post_instrument_bounds()}}.
 }
 \examples{
 x <- seq(0, 1, length.out = 100)
