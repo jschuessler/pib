@@ -16,113 +16,119 @@ Bias".
 ```{r setup, eval=FALSE}
 library(pib)
 library(estimatr)
+library(broom)
 ```
 
-### Carnegie/Marinov 2017
+### Setup
+
+```{r, eval = FALSE}
+data("hong_data")
+
+y <- "E18ConsSh"
+d <- "total_Lamount_1974_1978_perelect"
+m <- "demo_female_share_1966"
+z <- c("te_median1", "ts_median1")
+x <- c("area_1970",  "eup", "demo_age_15plus_1966",
+       "demo_illiterate_1966", "demo_pop_ch_1970_1966",
+       "E17ConsSh")
+fe <- "CTY_cd"
+
+rhs_with_m_and_z <- c(x, m, z)
+rhs_with_m       <- c(x, m)
+rhs_no_m         <- x
+
+fe_formula <- reformulate(fe)             
+```
+
+### Diagnostic test
 
 ```{r, eval=FALSE}
-data("carnegie_marinov")
-y <- "new_empinxavg" 
-m <- "pwt_openk" 
-d <- "EV" 
-z <- "l2CPcol2" 
-fe <- c("ccode", "year")
-```
+diag_form <- reformulate(rhs_with_m_and_z, response = d)
 
-##### Diagnostic test
+
+confint(lm_robust(formula = diag_form, data = hong_data,
+          clusters = CTY_cd, fixed_effects = ~ CTY_cd), 
+        level = 0.9)["demo_female_share_1966",]
+
+
+```
+### IV Treatment Effect Estimation with and without M
 
 ```{r, eval=FALSE}
-confint(lm_robust(EV ~ pwt_openk + l2CPcol2, 
-                  fixed_effects = ~ ccode + year, 
-                  clusters = ccode, data = carnegie_marinov), 
-        level = 0.9)["pwt_openk",]
+iv_with_m_formula <- as.formula(paste(
+  y, "~", paste(c(d, rhs_with_m), collapse = " + "), "|",
+  paste(c(rhs_with_m, z), collapse = " + ")
+))
+
+tidy(iv_robust(formula = iv_with_m_formula, data = hong_data,
+          clusters = CTY_cd, fixed_effects = ~ CTY_cd))[1,]
 ```
+
+
+```{r, eval=FALSE}
+iv_no_m_formula <- as.formula(paste(
+  y, "~", paste(c(d, rhs_no_m), collapse = " + "), "|",
+  paste(c(rhs_no_m, z), collapse = " + ")
+))
+
+tidy(iv_robust(formula = iv_no_m_formula, data = hong_data,
+          clusters = CTY_cd, fixed_effects = ~ CTY_cd))[1,]
+```
+
+### M as outcome in first stage regression
+
+```{r, eval = FALSE}
+first_stage_m_form <- reformulate(c(rhs_no_m, z), response = m)
+
+
+tidy(lm_robust(formula = first_stage_m_form, data = hong_data,
+          clusters = CTY_cd, fixed_effects = ~ CTY_cd))[7:8,]
+```
+
+### IV with M as outcome
+
+```{r, eval = FALSE}
+iv_m_outcome_form <- as.formula(paste(
+  m, "~", paste(c(d, rhs_no_m), collapse = " + "), "|",
+  paste(c(rhs_no_m, z), collapse = " + ")
+))
+
+tidy(iv_robust(formula = iv_m_outcome_form, data = hong_data,
+          clusters = CTY_cd, fixed_effects = ~ CTY_cd))[1,]
+```
+
 
 ##### Sensitivity analysis
 
 ```{r, eval=FALSE}
-out <- estimate_sensitivity(carnegie_marinov, R = 1501, outcome = y,
-treat = d, inst = z, post.inst = m, fe = fe, seed = 823, parallel =
-"snow", ncpus = 4)
+out <- estimate_sensitivity(hong_data, outcome = y, 
+                            treat = d, 
+                            inst = z, 
+                            post.inst = m, 
+                            x = x,
+                            fe = fe, seed = 2893, R = 1000,
+                            parallel = "multicore")
 
-gamma <- c(-0.02, 0.02) 
-sigma <- c(0, 0.002)
+gamma <- c(-1, 1)
+sigma <- c(0, 0.2)
 
-bounds <- post_instrument_bounds(gamma = gamma, sigma = sigma, n.sigma
-= 2, estimates = out)
+bounds <- post_instrument_bounds(gamma = gamma, sigma = sigma,
+                                 estimates = out)
 
-plot_pib_bounds(bounds, digits = 3)
+
 ```
 
-### Spenkuch/Tillmann 2017
+```{r, eval = FALSE}
+plot_pib_bounds(bounds)
 
-```{r, eval=FALSE}
-data("spenkuch_tillmann")
 
-y <- "r_NSDAP_NOV1932_p"
-d <- "r_1925C_kath"
-z <- "r_kath1624"
-m <- "r_1933C_arb_arbeitslos"
-x <- c("r_1925C_juden", "r_1925C_others", "r_1933C_frauen", "r_M1933C_frauen",
-       "r_stadtkreis", "r_1925C_logtotpop", "r_M1925C_logtotpop", "r_1933C_arbfrau",
-       "r_1933C_ang_arbeitslos", "r_M1933C_ang_arbeitslos", "r_1933C_hausang_arbeitslos",
-       "r_1933C_ind", "r_1933C_hand", "r_1933C_oeffprivd", "r_1933C_haus", "r_1933C_angest",
-       "r_1933C_beamt", "r_1933C_arb", "r_1933C_hausang", "r_1933C_selbst",
-       "r_latitude", "r_longitude", "r_distance_berlin", "r_distance_nearestcity", "r_distance_border",
-       "r_distance_seaport", "r_distance_river", "r_distance_resources",
-       "r_reichsmatrikel", "r_Mreichsmatrikel", "r_ecclesiastical", "r_Mecclesiastical",
-       "r_distance_wittenberg",
-       "r_press")
-fe <- "WKNR"
+```
+```{r, eval = FALSE}
+# high variance Beta distribution with causal effects varying from 0 to 0.5
+beta_sd(0.5, 0.5, -0.1, 0.4)
+# low variance
+beta_sd(4, 4, -0.1, 0.4)
+
+compute_single_bounds(gamma = 0.15, sigma = 0.08, bounds = bounds)
 ```
 
-##### Diagnostic test
-
-```{r, eval=FALSE}
-diagnostic <- lm(r_1925C_kath ~ r_kath1624 + r_gem1624 +
-                   r_1925C_juden + r_M1925C_juden + r_1925C_others + r_M1925C_others +
-                   r_1933C_frauen + r_M1933C_frauen + r_stadtkreis +
-                   r_1925C_logtotpop + r_M1925C_logtotpop +
-                   r_1933C_arbfrau + r_M1933C_arbfrau +
-                   r_1933C_ang_arbeitslos + r_M1933C_ang_arbeitslos +
-                   r_1933C_arb_arbeitslos + r_M1933C_arb_arbeitslos +
-                   r_1933C_hausang_arbeitslos + r_M1933C_hausang_arbeitslos +
-                   r_1933C_ind + r_1933C_hand + r_M1933C_ind + r_M1933C_hand +
-                   r_1933C_oeffprivd + r_M1933C_oeffprivd +
-                   r_1933C_haus + r_M1933C_haus +
-                   r_1933C_angest + r_1933C_beamt + r_M1933C_angest + r_M1933C_beamt +
-                   r_1933C_arb + r_M1933C_arb +
-                   r_1933C_hausang + r_1933C_selbst + r_M1933C_hausang + r_M1933C_selbst +
-                   factor(WKNR) +
-                   r_latitude+r_longitude + r_distance_berlin+
-                   r_distance_nearestcity + r_distance_border+
-                   r_distance_seaport + r_distance_river + r_distance_resources +
-                   r_reichsmatrikel + r_Mreichsmatrikel + r_ecclesiastical + r_Mecclesiastical +
-                   r_distance_wittenberg +
-                   r_press,
-
-                 weights = dfST$r_wahlberechtigte_NOV1932[
-                   dfST$r_MNSDAP_NOV1932_p==0 & dfST$r_M1925C_kath==0 &
-                     dfST$KREIS==1],
-
-                 data=spenkuch_tillmann[dfST$r_MNSDAP_NOV1932_p==0 & dfST$r_M1925C_kath==0 &
-                             dfST$KREIS==1,])
-
-confint(diagnostic, level = 0.9)["r_1933C_arb_arbeitslos",]
-```
-
-##### Sensitivity analysis
-
-```{r, eval=FALSE}
-outST <- estimate_sensitivity(spenkuch_tillmann, R = 1501, outcome = y,
-treat = d, inst = z, post.inst = m, x = x, fe = fe, weights =
-spenkuch_tillmann$r_wahlberechtigte_NOV1932, seed = 823, parallel =
-"snow", ncpus = 4)
-
-gamma <- c(-0.5, 0.5) sigma <- c(0, 1)
-
-boundsST <- post_instrument_bounds(gamma = gamma, sigma = sigma,
-estimates = outST, n.sigma = 3)
-
-plot_pib_bounds(boundsST, annotate.sigma = "all")
-```
