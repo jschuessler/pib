@@ -1,3 +1,12 @@
+#' Data from Hong, Park and Yang 2023
+#' 
+#' A subset of data from Hong, Ji Yeon, Sunkyoung Park and Hyunjoo Yang. 2023. 
+#' “In strongman we trust: The political legacy of the new village movement in 
+#' South Korea.” American Journal of Political Science 67(4):850–866.
+#' 
+#' @source <https://doi.org/10.7910/DVN/MWS8QF>
+"hong_data"
+
 #' Data from Carnegie/Marinov 2017
 #'
 #' A subset of data from Allison Carnegie and Nikolay Marinov (2017), "Foreign Aid, Human Rights, and Democracy Promotion:
